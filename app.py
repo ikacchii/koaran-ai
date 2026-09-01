@@ -64,7 +64,7 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
             contents.append({"role": role, "parts": [{"text": msg["content"]}]})
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=contents,
             config={"system_instruction": system_instruction}
         )
