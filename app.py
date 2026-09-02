@@ -61,9 +61,9 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     try:
-        # API呼び出し
+        # API呼び出し（3.6モデルを指定）
         response = client.models.generate_content(
-            model="gemini-３.６-flash",
+            model="models/gemini-3.6-flash",
             contents=prompt,
             config={"system_instruction": system_instruction}
         )
