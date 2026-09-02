@@ -61,9 +61,9 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     try:
-        # API呼び出し
+        # API呼び出し（3.5-flash-liteを指定）
         response = client.models.generate_content(
-            model="gemini-3.6-flash",
+            model="models/gemini-3.5-flash-lite",
             contents=prompt,
             config={"system_instruction": system_instruction}
         )
@@ -75,4 +75,16 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
         st.session_state.messages.append({"role": "assistant", "content": bot_response})
 
     except Exception as e:
-        st.error(f"エラーが発生しちゃっただコアラ...: {e}")
+        # 万が一モデル名エラー(404)が出た場合のフォールバック（1.5-flash-lite）
+        try:
+            response = client.models.generate_content(
+                model="models/gemini-1.5-flash-lite",
+                contents=prompt,
+                config={"system_instruction": system_instruction}
+            )
+            bot_response = response.text
+            with st.chat_message("assistant"):
+                st.markdown(bot_response)
+            st.session_state.messages.append({"role": "assistant", "content": bot_response})
+        except Exception as err:
+            st.error(f"エラーが発生しちゃっただコアラ...: {err}")
