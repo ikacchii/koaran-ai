@@ -1,6 +1,8 @@
 import os
+import time
 import streamlit as st
 from google import genai
+from google.genai.errors import APIError
 
 st.title("コアランAI 🐨")
 
@@ -60,19 +62,31 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    try:
-        # API呼び出し（3.6モデルを指定）
-        response = client.models.generate_content(
-            model="models/gemini-3.6-flash",
-            contents=prompt,
-            config={"system_instruction": system_instruction}
-        )
-        
-        # 返信の表示と保存
-        bot_response = response.text
+    # 応答生成（失敗しても自動で再試行する処理）
+    bot_response = None
+    with st.spinner("コアランが考えてるよ..."):
+        for attempt in range(3):  # 最大3回までやり直す
+            try:
+                response = client.models.generate_content(
+                    model="models/gemini-3.6-flash",
+                    contents=prompt,
+                    config={"system_instruction": system_instruction}
+                )
+                bot_response = response.text
+                break  # 成功したらループを抜ける
+            except APIError as e:
+                # 混雑・制限エラー（429）の時は自動で数秒待って再試行
+                if "429" in str(e) and attempt < 2:
+                    time.sleep(5)  # 5秒待つ
+                else:
+                    st.error("混雑しているみたいだコアラ... 少し時間を置いてから話しかけてね！")
+                    break
+            except Exception as e:
+                st.error(f"エラーが発生しちゃっただコアラ...: {e}")
+                break
+
+    # 返信の表示と保存
+    if bot_response:
         with st.chat_message("assistant"):
             st.markdown(bot_response)
         st.session_state.messages.append({"role": "assistant", "content": bot_response})
-
-    except Exception as e:
-        st.error(f"エラーが発生しちゃっただコアラ...: {e}")
