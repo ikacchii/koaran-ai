@@ -63,7 +63,7 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
     try:
         # API呼び出し
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-３.６-flash",
             contents=prompt,
             config={"system_instruction": system_instruction}
         )
