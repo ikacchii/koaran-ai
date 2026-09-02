@@ -63,7 +63,7 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
     try:
         # API呼び出し（実在する高速モデル gemini-2.5-flash を指定）
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=prompt,
             config={"system_instruction": system_instruction}
         )
