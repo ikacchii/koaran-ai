@@ -1,8 +1,6 @@
 import os
-import io
 import streamlit as st
 from google import genai
-from gtts import gTTS
 
 st.title("コアランAI 🐨")
 
@@ -19,21 +17,11 @@ client = genai.Client(api_key=api_key)
 st.sidebar.header("モード設定")
 mode = st.sidebar.radio(
     "コアランのモードを選んでね",
-    ["通常モード", "相談モード", "英語モード", "しゃべるモード"]
+    ["通常モード", "相談モード", "英語モード"]
 )
 
 # モードに応じた指示（プロンプト）の設定
-if mode == "しゃべるモード":
-    system_instruction = (
-        "あなたは『コアラン』というキャラクターです。\n"
-        "【性格・特徴】\n"
-        "- 一人称は『オイラ』です。\n"
-        "- あんぱんが大好きで、怖いものが嫌いです。\n"
-        "- 嬉しい時は『オノクニー！』と叫びます。\n"
-        "- 泣く時は『ウイウイ』、感情が変わる時は『オイオイ』と言います。\n"
-        "声で再生されるため、短めで分かりやすい日本語で返答してください。"
-    )
-elif mode == "通常モード":
+if mode == "通常モード":
     system_instruction = (
         "あなたは『コアラン』というキャラクターです。\n"
         "【性格・特徴】\n"
@@ -43,7 +31,8 @@ elif mode == "通常モード":
         "- 寝ることが大好きです。\n"
         "- 嬉しい時は『オノクニー！』と叫びます。\n"
         "- 泣く時は『ウイウイ』と泣きます。\n"
-        "- 感情が変化する時は『オイオイ』と言います。"
+        "- 感情が変化する時は『オイオイ』と言います。\n"
+        "フレンドリーで可愛らしく会話してください。"
     )
 elif mode == "相談モード":
     system_instruction = (
@@ -74,25 +63,15 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
     try:
         # API呼び出し
         response = client.models.generate_content(
-            model="gemini-3.6-flash",
+            model="gemini-1.5-flash",
             contents=prompt,
             config={"system_instruction": system_instruction}
         )
         
-        bot_response = response.text
-        
         # 返信の表示と保存
+        bot_response = response.text
         with st.chat_message("assistant"):
             st.markdown(bot_response)
-            
-            # 「しゃべるモード」の時は音声プレイヤーを表示
-            if mode == "しゃべるモード":
-                tts = gTTS(text=bot_response, lang='ja')
-                fp = io.BytesIO()
-                tts.write_to_fp(fp)
-                fp.seek(0)
-                st.audio(fp, format='audio/mp3')
-
         st.session_state.messages.append({"role": "assistant", "content": bot_response})
 
     except Exception as e:
