@@ -1,9 +1,6 @@
 import os
-import time
-import re
 import streamlit as st
 from google import genai
-from google.genai.errors import APIError
 
 st.title("コアランAI 🐨")
 
@@ -63,42 +60,19 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    bot_response = None
-    status_area = st.empty()
-
-    # 3.6モデルでの自動リトライ処理
-    max_retries = 5
-    for attempt in range(max_retries):
-        try:
-            status_area.info("コアランが考え中だコアラ...")
-            response = client.models.generate_content(
-                model="models/gemini-3.6-flash",
-                contents=prompt,
-                config={"system_instruction": system_instruction}
-            )
-            bot_response = response.text
-            status_area.empty()
-            break
-        except APIError as e:
-            err_msg = str(e)
-            if "429" in err_msg:
-                # エラーメッセージから待機秒数を取得（見つからなければデフォルト15秒）
-                match = re.search(r"retry in ([0-9\.]+)s", err_msg)
-                wait_time = int(float(match.group(1))) + 1 if match else 15
-                
-                # カウントダウンを表示しながら待機
-                for seconds_left in range(wait_time, 0, -1):
-                    status_area.warning(f"混雑中だコアラ... あと {seconds_left} 秒待ってね！")
-                    time.sleep(1)
-            else:
-                status_area.error(f"エラーが発生しちゃっただコアラ...: {e}")
-                break
-        except Exception as e:
-            status_area.error(f"エラーが発生しちゃっただコアラ...: {e}")
-            break
-
-    # 返信の表示と保存
-    if bot_response:
+    try:
+        # API呼び出し
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt,
+            config={"system_instruction": system_instruction}
+        )
+        
+        # 返信の表示と保存
+        bot_response = response.text
         with st.chat_message("assistant"):
             st.markdown(bot_response)
         st.session_state.messages.append({"role": "assistant", "content": bot_response})
+
+    except Exception as e:
+        st.error(f"エラーが発生しちゃっただコアラ...: {e}")
