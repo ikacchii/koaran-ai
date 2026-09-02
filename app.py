@@ -63,7 +63,7 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
     try:
         # API呼び出し（3.5-flash-liteを指定）
         response = client.models.generate_content(
-            model="models/gemini-3.5-flash-lite",
+            model="models/gemini-3.6-flash-lite",
             contents=prompt,
             config={"system_instruction": system_instruction}
         )
@@ -78,8 +78,9 @@ if prompt := st.chat_input("コアランにメッセージを送る..."):
         # 万が一モデル名エラー(404)が出た場合のフォールバック（1.5-flash-lite）
         try:
             response = client.models.generate_content(
-                model="models/gemini-3.6-flash",
-                contents=prompt,
+                model="models/gemini-3.5-flash-lite",
+                
+            contents=prompt,
                 config={"system_instruction": system_instruction}
             )
             bot_response = response.text
